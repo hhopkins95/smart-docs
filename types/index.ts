@@ -52,6 +52,9 @@ export interface Plugin {
   source: 'global' | 'project';
   path: string;
   enabled: boolean;
+  // Marketplace/registry info
+  marketplace?: string;          // Name of the marketplace/registry (e.g., "anthropic-agent-skills")
+  marketplaceUrl?: string;       // URL to the marketplace/registry
   // Counts of what's inside
   skillCount: number;
   commandCount: number;
@@ -69,17 +72,18 @@ export interface SkillMetadata {
 export interface Skill {
   name: string;
   path: string;
-  source: 'global' | 'project';
+  source: 'global' | 'project' | 'plugin';
   metadata: SkillMetadata | null;
   // Files within the skill
   files: string[];              // Relative paths within skill directory
+  fileContents?: Record<string, string>; // File name -> content mapping
 }
 
 // ========== Commands ==========
 export interface Command {
   name: string;                  // e.g., "review" from review.md
   path: string;
-  source: 'global' | 'project';
+  source: 'global' | 'project' | 'plugin';
   content: string;
   description?: string;          // First line or from frontmatter
 }
@@ -88,7 +92,7 @@ export interface Command {
 export interface Agent {
   name: string;
   path: string;
-  source: 'global' | 'project';
+  source: 'global' | 'project' | 'plugin';
   content: string;
   description?: string;
 }
@@ -97,7 +101,7 @@ export interface Agent {
 export interface Hook {
   name: string;
   path: string;
-  source: 'global' | 'project';
+  source: 'global' | 'project' | 'plugin';
   content: string;
 }
 

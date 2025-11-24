@@ -15,7 +15,7 @@ export class ClaudeConfigService {
     return { skills, commands, agents, hooks };
   }
 
-  async getSkills(basePath: string, source: 'global' | 'project'): Promise<Skill[]> {
+  async getSkills(basePath: string, source: 'global' | 'project' | 'plugin', includeContents: boolean = false): Promise<Skill[]> {
     const skillsDir = path.join(basePath, 'skills');
     const skills: Skill[] = [];
 
@@ -34,12 +34,18 @@ export class ClaudeConfigService {
         // Get all files in the skill directory
         const files = await this.getFilesInDirectory(skillPath);
 
+        // Optionally read file contents
+        const fileContents = includeContents
+          ? await this.readSkillFileContents(skillPath, files)
+          : undefined;
+
         skills.push({
           name: entry,
           path: skillPath,
           source,
           metadata,
           files,
+          fileContents,
         });
       }
     } catch {
@@ -47,6 +53,22 @@ export class ClaudeConfigService {
     }
 
     return skills;
+  }
+
+  async readSkillFileContents(skillPath: string, files: string[]): Promise<Record<string, string>> {
+    const contents: Record<string, string> = {};
+
+    for (const file of files) {
+      try {
+        const filePath = path.join(skillPath, file);
+        const content = await fs.readFile(filePath, 'utf-8');
+        contents[file] = content;
+      } catch {
+        // File can't be read, skip
+      }
+    }
+
+    return contents;
   }
 
   private async parseSkillMetadata(skillPath: string): Promise<SkillMetadata | null> {
@@ -100,7 +122,7 @@ export class ClaudeConfigService {
     return files;
   }
 
-  async getCommands(basePath: string, source: 'global' | 'project'): Promise<Command[]> {
+  async getCommands(basePath: string, source: 'global' | 'project' | 'plugin'): Promise<Command[]> {
     const commandsDir = path.join(basePath, 'commands');
     const commands: Command[] = [];
 
@@ -130,7 +152,7 @@ export class ClaudeConfigService {
     return commands;
   }
 
-  async getAgents(basePath: string, source: 'global' | 'project'): Promise<Agent[]> {
+  async getAgents(basePath: string, source: 'global' | 'project' | 'plugin'): Promise<Agent[]> {
     const agentsDir = path.join(basePath, 'agents');
     const agents: Agent[] = [];
 
@@ -160,7 +182,7 @@ export class ClaudeConfigService {
     return agents;
   }
 
-  async getHooks(basePath: string, source: 'global' | 'project'): Promise<Hook[]> {
+  async getHooks(basePath: string, source: 'global' | 'project' | 'plugin'): Promise<Hook[]> {
     const hooksDir = path.join(basePath, 'hooks');
     const hooks: Hook[] = [];
 

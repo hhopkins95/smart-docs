@@ -69,6 +69,9 @@ export class PluginDiscovery {
 
       const plugins: Plugin[] = [];
 
+      // Extract marketplace name from path (e.g., "anthropic-agent-skills" from the directory name)
+      const marketplaceName = path.basename(marketplacePath);
+
       for (const pluginDef of manifest.plugins) {
         const skillCount = pluginDef.skills?.length || 0;
         const commandCount = pluginDef.commands?.length || 0;
@@ -83,6 +86,8 @@ export class PluginDiscovery {
           source,
           path: marketplacePath,
           enabled: true, // Will be updated by PluginManager
+          marketplace: manifest.name,
+          marketplaceUrl: this.getMarketplaceUrl(manifest.name, marketplaceName),
           skillCount,
           commandCount,
           agentCount,
@@ -95,6 +100,15 @@ export class PluginDiscovery {
       // Not a marketplace directory or can't parse manifest
       return [];
     }
+  }
+
+  private getMarketplaceUrl(manifestName: string, directoryName: string): string | undefined {
+    // Map known marketplaces to their URLs
+    const marketplaceUrls: Record<string, string> = {
+      'anthropic-agent-skills': 'https://github.com/anthropics/anthropic-agent-skills',
+    };
+
+    return marketplaceUrls[directoryName] || marketplaceUrls[manifestName];
   }
 
   private async parsePlugin(pluginPath: string, source: 'global' | 'project'): Promise<Plugin | null> {
