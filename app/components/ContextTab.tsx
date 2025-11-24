@@ -99,11 +99,11 @@ export default function ContextTab() {
             <div className="text-gray-500 text-sm">
               No CLAUDE.md files found.
               <div className="mt-2 text-xs">
-                <p>Create CLAUDE.md files in:</p>
+                <p>Create CLAUDE.md files at:</p>
                 <ul className="list-disc ml-4 mt-1">
                   <li>~/.claude/CLAUDE.md (global)</li>
-                  <li>./.claude/CLAUDE.md (project)</li>
-                  <li>subdirs/.claude/CLAUDE.md (nested)</li>
+                  <li>./CLAUDE.md (project root)</li>
+                  <li>./subdirectory/CLAUDE.md (nested)</li>
                 </ul>
               </div>
             </div>
@@ -221,10 +221,10 @@ export default function ContextTab() {
                   <strong>Global</strong> (~/.claude/CLAUDE.md): Applies to all projects
                 </li>
                 <li>
-                  <strong>Project</strong> (./.claude/CLAUDE.md): Applies to current project
+                  <strong>Project</strong> (./CLAUDE.md): Applies to current project root
                 </li>
                 <li>
-                  <strong>Nested</strong> (subdirectory/.claude/CLAUDE.md): Applies to specific subdirectories
+                  <strong>Nested</strong> (./subdirectory/CLAUDE.md): Applies to specific subdirectories
                 </li>
               </ul>
             </div>

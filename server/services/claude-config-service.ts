@@ -284,14 +284,14 @@ export class ClaudeConfigService {
       });
     }
 
-    // 2. Check for project CLAUDE.md
-    const projectClaudePath = path.join(projectRoot, '.claude', 'CLAUDE.md');
-    const projectFile = await this.readClaudeMdFile(projectClaudePath, 'project', 1, './.claude');
+    // 2. Check for project CLAUDE.md at root
+    const projectClaudePath = path.join(projectRoot, 'CLAUDE.md');
+    const projectFile = await this.readClaudeMdFile(projectClaudePath, 'project', 1, './CLAUDE.md');
     if (projectFile) {
       nodes.push({
         type: 'directory',
-        name: 'Project (./.claude)',
-        path: path.join(projectRoot, '.claude'),
+        name: 'Project Root',
+        path: projectRoot,
         children: [{
           type: 'file',
           name: 'CLAUDE.md',
@@ -301,13 +301,13 @@ export class ClaudeConfigService {
       });
     }
 
-    // 3. Recursively search for nested CLAUDE.md files in the docs directory
-    const nestedNodes = await this.findNestedClaudeMdFiles(docsPath, projectRoot, 2);
+    // 3. Recursively search for nested CLAUDE.md files throughout project
+    const nestedNodes = await this.findNestedClaudeMdFiles(projectRoot, projectRoot, 2);
     if (nestedNodes.length > 0) {
       nodes.push({
         type: 'directory',
-        name: 'Documentation Context',
-        path: docsPath,
+        name: 'Nested Context',
+        path: projectRoot,
         children: nestedNodes,
       });
     }
@@ -354,15 +354,20 @@ export class ClaudeConfigService {
       for (const entry of entries) {
         const fullPath = path.join(dirPath, entry.name);
 
-        // Skip hidden files/directories and node_modules
-        if (entry.name.startsWith('.') || entry.name === 'node_modules') {
+        // Skip hidden directories, node_modules, and common build/cache directories
+        if (
+          entry.name.startsWith('.') ||
+          entry.name === 'node_modules' ||
+          entry.name === 'dist' ||
+          entry.name === 'build' ||
+          entry.name === 'coverage'
+        ) {
           continue;
         }
 
         if (entry.isDirectory()) {
-          // Check if this directory contains a .claude/CLAUDE.md
-          const claudeDir = path.join(fullPath, '.claude');
-          const claudeMdPath = path.join(claudeDir, 'CLAUDE.md');
+          // Check if this directory contains CLAUDE.md at its root
+          const claudeMdPath = path.join(fullPath, 'CLAUDE.md');
 
           try {
             await fs.access(claudeMdPath);

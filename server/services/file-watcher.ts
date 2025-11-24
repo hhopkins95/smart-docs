@@ -39,11 +39,11 @@ export class FileSystemWatcher extends EventEmitter {
       'claude'
     );
 
-    // Watch for nested CLAUDE.md files in docs directory
+    // Watch for CLAUDE.md files throughout project (at directory roots)
     this.watchPath(
-      'nested-claude-md',
-      this.config.docsPath,
-      ['**/.claude/CLAUDE.md'],
+      'project-claude-md',
+      this.config.projectRoot,
+      ['**/CLAUDE.md'],
       'claude'
     );
 
@@ -59,7 +59,7 @@ export class FileSystemWatcher extends EventEmitter {
     const watcher = chokidar.watch(patterns, {
       cwd: basePath,
       ignoreInitial: true,
-      ignored: ['**/node_modules/**', '**/.git/**'],
+      ignored: ['**/node_modules/**', '**/.git/**', '**/.next/**', '**/dist/**', '**/build/**', '**/coverage/**'],
     });
 
     watcher.on('all', (event: string, relativePath: string) => {
