@@ -4,7 +4,12 @@ import { spawn } from 'child_process';
 import * as path from 'path';
 import * as os from 'os';
 import * as fs from 'fs';
+import { fileURLToPath } from 'url';
+import { dirname } from 'path';
 import open from 'open';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
 async function findAvailablePort(startPort: number = 3000): Promise<number> {
   const net = await import('net');
@@ -39,7 +44,10 @@ async function waitForServer(port: number, maxAttempts: number = 30): Promise<bo
 async function main() {
   // Parse arguments
   const args = process.argv.slice(2);
-  const docsPath = args[0] || './docs';
+  const isDev = args.includes('--dev');
+  const portIndex = args.findIndex(arg => arg === '--port' || arg === '-p');
+  const specifiedPort = portIndex >= 0 && args[portIndex + 1] ? parseInt(args[portIndex + 1], 10) : null;
+  const docsPath = args.find(arg => !arg.startsWith('--') && !arg.startsWith('-') && arg !== args[portIndex + 1]) || './docs';
 
   // Resolve paths
   const projectRoot = process.cwd();
@@ -53,8 +61,8 @@ async function main() {
     fs.mkdirSync(absoluteDocsPath, { recursive: true });
   }
 
-  // Find available port
-  const port = await findAvailablePort(3000);
+  // Find available port or use specified port
+  const port = specifiedPort || await findAvailablePort(4500);
 
   // Set environment variables
   process.env.SMART_DOCS_PATH = absoluteDocsPath;
@@ -66,14 +74,18 @@ async function main() {
   console.log(`📂 Docs: ${absoluteDocsPath}`);
   console.log(`🏠 Project: ${projectRoot}`);
   console.log(`🌐 Server: http://localhost:${port}`);
+  console.log(`⚙️  Mode: ${isDev ? 'Development' : 'Production'}`);
   console.log('');
 
-  // Start Next.js dev server
-  const nextBin = path.join(__dirname, '..', 'node_modules', '.bin', 'next');
-  const server = spawn('node', [nextBin, 'dev', '-p', port.toString()], {
+  // Start Next.js server (dev or production based on flag)
+  // Use npx to run next, which will find it in node_modules
+  const packageRoot = path.join(__dirname, '..');
+  const nextCommand = isDev ? 'dev' : 'start';
+  const server = spawn('npx', ['next', nextCommand, '-p', port.toString()], {
     env: process.env,
     stdio: 'inherit',
-    cwd: path.join(__dirname, '..'),
+    cwd: packageRoot,
+    shell: true,
   });
 
   // Wait for server to be ready
