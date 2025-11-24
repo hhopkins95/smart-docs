@@ -77,6 +77,7 @@ export default function PluginsTab() {
           pluginPath: plugin.path,
           pluginId: plugin.id,
           marketplace: plugin.marketplace,
+          includeContents: true,
         }),
       });
 
@@ -96,8 +97,9 @@ export default function PluginsTab() {
   const globalPlugins = plugins.filter(p => p.source === 'global');
 
   return (
-    <div className="p-6 overflow-y-auto">
-      <div className="space-y-8">
+    <div className="h-full flex flex-col">
+      <div className="flex-1 overflow-y-auto p-6">
+        <div className="space-y-8">
         {/* Global Plugins */}
         <div>
           <h3 className="text-xl font-bold mb-4">
@@ -290,6 +292,7 @@ export default function PluginsTab() {
               ))}
             </div>
           )}
+        </div>
         </div>
       </div>
 

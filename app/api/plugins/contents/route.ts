@@ -3,7 +3,7 @@ import { getServices } from '@/server/services';
 
 export async function POST(request: Request) {
   try {
-    const { pluginPath, pluginId, marketplace } = await request.json();
+    const { pluginPath, pluginId, marketplace, includeContents = false } = await request.json();
 
     if (!pluginPath) {
       return NextResponse.json(
@@ -26,7 +26,8 @@ export async function POST(request: Request) {
           config = await claudeConfigService.getMarketplacePluginConfig(
             pluginPath,
             pluginDef.name,
-            pluginDef.skills
+            pluginDef.skills,
+            includeContents
           );
         } else {
           config = { skills: [], commands: [], agents: [], hooks: [] };
@@ -36,7 +37,7 @@ export async function POST(request: Request) {
       }
     } else {
       // Standard plugin with .claude structure
-      config = await claudeConfigService.getConfig(pluginPath, 'plugin');
+      config = await claudeConfigService.getConfig(pluginPath, 'plugin', includeContents);
     }
 
     return NextResponse.json(config);

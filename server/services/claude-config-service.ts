@@ -4,9 +4,9 @@ import matter from 'gray-matter';
 import type { ClaudeConfig, Skill, Command, Agent, Hook, SkillMetadata, Frontmatter } from '@/types';
 
 export class ClaudeConfigService {
-  async getConfig(basePath: string, source: 'global' | 'project'): Promise<ClaudeConfig> {
+  async getConfig(basePath: string, source: 'global' | 'project', includeContents: boolean = false): Promise<ClaudeConfig> {
     const [skills, commands, agents, hooks] = await Promise.all([
-      this.getSkills(basePath, source),
+      this.getSkills(basePath, source, includeContents),
       this.getCommands(basePath, source),
       this.getAgents(basePath, source),
       this.getHooks(basePath, source),
@@ -214,7 +214,7 @@ export class ClaudeConfigService {
     return line.trim();
   }
 
-  async getMarketplacePluginConfig(marketplacePath: string, pluginName: string, skillPaths: string[]): Promise<ClaudeConfig> {
+  async getMarketplacePluginConfig(marketplacePath: string, pluginName: string, skillPaths: string[], includeContents: boolean = false): Promise<ClaudeConfig> {
     const skills: Skill[] = [];
 
     for (const skillPath of skillPaths) {
@@ -230,12 +230,18 @@ export class ClaudeConfigService {
         // Get all files in the skill directory
         const files = await this.getFilesInDirectory(fullSkillPath);
 
+        // Optionally read file contents
+        const fileContents = includeContents
+          ? await this.readSkillFileContents(fullSkillPath, files)
+          : undefined;
+
         skills.push({
           name: path.basename(skillPath),
           path: fullSkillPath,
           source: 'plugin',
           metadata,
           files,
+          fileContents,
         });
       } catch (error) {
         // Skip skills that can't be read
