@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import type { Skill } from '@/types';
@@ -41,9 +41,9 @@ const sortFiles = (files: string[]): string[] => {
     const aBasename = a.split('/').pop() || a;
     const bBasename = b.split('/').pop() || b;
 
-    // skill.md always comes first
-    if (aBasename === 'skill.md') return -1;
-    if (bBasename === 'skill.md') return 1;
+    // skill.md always comes first (case-insensitive)
+    if (aBasename.toLowerCase() === 'skill.md') return -1;
+    if (bBasename.toLowerCase() === 'skill.md') return 1;
 
     // Otherwise alphabetical
     return aBasename.localeCompare(bBasename);
@@ -52,6 +52,11 @@ const sortFiles = (files: string[]): string[] => {
 
 export default function SkillModal({ skill, isOpen, onClose }: SkillModalProps) {
   const [activeFileIndex, setActiveFileIndex] = useState(0);
+
+  // Reset to first tab when skill changes
+  useEffect(() => {
+    setActiveFileIndex(0);
+  }, [skill?.name]);
 
   if (!skill) return null;
 
@@ -80,7 +85,6 @@ export default function SkillModal({ skill, isOpen, onClose }: SkillModalProps) 
             <div className="border-b border-gray-200 dark:border-gray-700">
               <div className="flex overflow-x-auto">
                 {sortedFiles.map((filename, idx) => {
-                  const displayName = filename.split('/').pop() || filename;
                   return (
                     <button
                       key={idx}
@@ -91,7 +95,7 @@ export default function SkillModal({ skill, isOpen, onClose }: SkillModalProps) 
                       }`}
                       onClick={() => setActiveFileIndex(idx)}
                     >
-                      {displayName}
+                      {filename}
                     </button>
                   );
                 })}
