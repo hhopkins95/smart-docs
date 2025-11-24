@@ -26,7 +26,7 @@ export class FileSystemWatcher extends EventEmitter {
     this.watchPath(
       'global-claude',
       globalClaudePath,
-      ['skills/**', 'commands/**', 'agents/**', 'hooks/**', 'plugins/**/**/plugin.json'],
+      ['skills/**', 'commands/**', 'agents/**', 'hooks/**', 'plugins/**/**/plugin.json', 'CLAUDE.md'],
       'claude'
     );
 
@@ -36,6 +36,14 @@ export class FileSystemWatcher extends EventEmitter {
       'project-claude',
       projectClaudePath,
       ['**/*'],
+      'claude'
+    );
+
+    // Watch for nested CLAUDE.md files in docs directory
+    this.watchPath(
+      'nested-claude-md',
+      this.config.docsPath,
+      ['**/.claude/CLAUDE.md'],
       'claude'
     );
 

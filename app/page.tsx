@@ -4,10 +4,11 @@ import { useState, useEffect } from 'react';
 import DocsTab from './components/DocsTab';
 import ClaudeConfigTab from './components/ClaudeConfigTab';
 import PluginsTab from './components/PluginsTab';
+import ContextTab from './components/ContextTab';
 import type { ServerConfig } from '@/types';
 
 export default function Home() {
-  const [activeTab, setActiveTab] = useState<'docs' | 'claude' | 'plugins'>('docs');
+  const [activeTab, setActiveTab] = useState<'docs' | 'claude' | 'plugins' | 'context'>('docs');
   const [config, setConfig] = useState<ServerConfig | null>(null);
 
   useEffect(() => {
@@ -65,6 +66,16 @@ export default function Home() {
           >
             🔌 Plugins
           </button>
+          <button
+            className={`px-4 py-2 font-medium ${
+              activeTab === 'context'
+                ? 'border-b-2 border-blue-500 text-blue-600 dark:text-blue-400'
+                : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200'
+            }`}
+            onClick={() => setActiveTab('context')}
+          >
+            📋 Context
+          </button>
         </div>
       </header>
 
@@ -73,6 +84,7 @@ export default function Home() {
         {activeTab === 'docs' && <DocsTab />}
         {activeTab === 'claude' && <ClaudeConfigTab />}
         {activeTab === 'plugins' && <PluginsTab />}
+        {activeTab === 'context' && <ContextTab />}
       </main>
     </div>
   );

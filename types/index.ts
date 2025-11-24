@@ -113,6 +113,28 @@ export interface ClaudeConfig {
   hooks: Hook[];
 }
 
+// ========== CLAUDE.md Context Files ==========
+export type ClaudeMdScope = 'global' | 'project' | 'nested';
+
+export interface ClaudeMdFile {
+  name: string;                  // e.g., "CLAUDE.md"
+  path: string;                  // Absolute path to the file
+  relativePath: string;          // Relative path for display
+  scope: ClaudeMdScope;          // Where this file comes from
+  level: number;                 // Depth in hierarchy (0=global, 1=project, 2+=nested)
+  content: string;               // File content
+  frontmatter: Frontmatter | null;
+  directoryPath: string;         // Directory this file applies to
+}
+
+export interface ClaudeMdNode {
+  type: 'file' | 'directory';
+  name: string;
+  path: string;
+  file?: ClaudeMdFile;           // Present if type === 'file'
+  children?: ClaudeMdNode[];     // Present if type === 'directory'
+}
+
 // ========== Markdown Docs ==========
 export interface Frontmatter {
   title?: string;

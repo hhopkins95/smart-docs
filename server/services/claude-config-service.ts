@@ -1,7 +1,7 @@
 import * as fs from 'fs/promises';
 import * as path from 'path';
 import matter from 'gray-matter';
-import type { ClaudeConfig, Skill, Command, Agent, Hook, SkillMetadata, Frontmatter } from '@/types';
+import type { ClaudeConfig, Skill, Command, Agent, Hook, SkillMetadata, Frontmatter, ClaudeMdFile, ClaudeMdNode, ClaudeMdScope } from '@/types';
 
 export class ClaudeConfigService {
   async getConfig(basePath: string, source: 'global' | 'project', includeContents: boolean = false): Promise<ClaudeConfig> {
@@ -262,5 +262,153 @@ export class ClaudeConfigService {
       agents: [],   // Marketplace plugins don't have agents
       hooks: [],    // Marketplace plugins don't have hooks
     };
+  }
+
+  async getClaudeMdFiles(homeDir: string, projectRoot: string, docsPath: string): Promise<ClaudeMdNode[]> {
+    const nodes: ClaudeMdNode[] = [];
+
+    // 1. Check for global CLAUDE.md
+    const globalClaudePath = path.join(homeDir, '.claude', 'CLAUDE.md');
+    const globalFile = await this.readClaudeMdFile(globalClaudePath, 'global', 0, '~/.claude');
+    if (globalFile) {
+      nodes.push({
+        type: 'directory',
+        name: 'Global (~/.claude)',
+        path: path.join(homeDir, '.claude'),
+        children: [{
+          type: 'file',
+          name: 'CLAUDE.md',
+          path: globalClaudePath,
+          file: globalFile,
+        }],
+      });
+    }
+
+    // 2. Check for project CLAUDE.md
+    const projectClaudePath = path.join(projectRoot, '.claude', 'CLAUDE.md');
+    const projectFile = await this.readClaudeMdFile(projectClaudePath, 'project', 1, './.claude');
+    if (projectFile) {
+      nodes.push({
+        type: 'directory',
+        name: 'Project (./.claude)',
+        path: path.join(projectRoot, '.claude'),
+        children: [{
+          type: 'file',
+          name: 'CLAUDE.md',
+          path: projectClaudePath,
+          file: projectFile,
+        }],
+      });
+    }
+
+    // 3. Recursively search for nested CLAUDE.md files in the docs directory
+    const nestedNodes = await this.findNestedClaudeMdFiles(docsPath, projectRoot, 2);
+    if (nestedNodes.length > 0) {
+      nodes.push({
+        type: 'directory',
+        name: 'Documentation Context',
+        path: docsPath,
+        children: nestedNodes,
+      });
+    }
+
+    return nodes;
+  }
+
+  private async readClaudeMdFile(
+    filePath: string,
+    scope: ClaudeMdScope,
+    level: number,
+    displayPath: string
+  ): Promise<ClaudeMdFile | null> {
+    try {
+      const content = await fs.readFile(filePath, 'utf-8');
+      const parsed = matter(content);
+      const frontmatter = parsed.data as Frontmatter;
+
+      return {
+        name: 'CLAUDE.md',
+        path: filePath,
+        relativePath: displayPath,
+        scope,
+        level,
+        content: parsed.content,
+        frontmatter: Object.keys(frontmatter).length > 0 ? frontmatter : null,
+        directoryPath: path.dirname(filePath),
+      };
+    } catch {
+      return null;
+    }
+  }
+
+  private async findNestedClaudeMdFiles(
+    dirPath: string,
+    projectRoot: string,
+    level: number
+  ): Promise<ClaudeMdNode[]> {
+    const nodes: ClaudeMdNode[] = [];
+
+    try {
+      const entries = await fs.readdir(dirPath, { withFileTypes: true });
+
+      for (const entry of entries) {
+        const fullPath = path.join(dirPath, entry.name);
+
+        // Skip hidden files/directories and node_modules
+        if (entry.name.startsWith('.') || entry.name === 'node_modules') {
+          continue;
+        }
+
+        if (entry.isDirectory()) {
+          // Check if this directory contains a .claude/CLAUDE.md
+          const claudeDir = path.join(fullPath, '.claude');
+          const claudeMdPath = path.join(claudeDir, 'CLAUDE.md');
+
+          try {
+            await fs.access(claudeMdPath);
+            const relativePath = path.relative(projectRoot, claudeMdPath);
+            const file = await this.readClaudeMdFile(claudeMdPath, 'nested', level, relativePath);
+
+            if (file) {
+              nodes.push({
+                type: 'directory',
+                name: entry.name,
+                path: fullPath,
+                children: [{
+                  type: 'file',
+                  name: 'CLAUDE.md',
+                  path: claudeMdPath,
+                  file,
+                }],
+              });
+            }
+          } catch {
+            // No CLAUDE.md in this directory, continue
+          }
+
+          // Recursively search subdirectories
+          const childNodes = await this.findNestedClaudeMdFiles(fullPath, projectRoot, level + 1);
+          if (childNodes.length > 0) {
+            // If we already added this directory (because it has CLAUDE.md), add children to it
+            const existingNode = nodes.find(n => n.path === fullPath);
+            if (existingNode && existingNode.children) {
+              existingNode.children.push(...childNodes);
+            } else {
+              // Otherwise create a new directory node
+              nodes.push({
+                type: 'directory',
+                name: entry.name,
+                path: fullPath,
+                children: childNodes,
+              });
+            }
+          }
+        }
+      }
+    } catch {
+      // Directory doesn't exist or can't be read
+    }
+
+    return nodes;
   }
 }
