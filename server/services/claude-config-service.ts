@@ -106,15 +106,22 @@ export class ClaudeConfigService {
     return '';
   }
 
-  private async getFilesInDirectory(dirPath: string): Promise<string[]> {
+  private async getFilesInDirectory(dirPath: string, relativePath: string = ''): Promise<string[]> {
     const files: string[] = [];
 
     try {
       const entries = await fs.readdir(dirPath, { withFileTypes: true });
 
       for (const entry of entries) {
+        const fullPath = path.join(dirPath, entry.name);
+        const relPath = relativePath ? path.join(relativePath, entry.name) : entry.name;
+
         if (entry.isFile()) {
-          files.push(entry.name);
+          files.push(relPath);
+        } else if (entry.isDirectory()) {
+          // Recursively get files from subdirectories
+          const subFiles = await this.getFilesInDirectory(fullPath, relPath);
+          files.push(...subFiles);
         }
       }
     } catch {}

@@ -17,8 +17,8 @@ export async function GET(request: Request) {
     const projectPath = path.join(config.projectRoot, '.claude');
 
     const [globalConfig, projectConfig] = await Promise.all([
-      claudeConfigService.getConfig(globalPath, 'global'),
-      claudeConfigService.getConfig(projectPath, 'project'),
+      claudeConfigService.getConfig(globalPath, 'global', includeContents),
+      claudeConfigService.getConfig(projectPath, 'project', includeContents),
     ]);
 
     // Discover and filter enabled plugins
@@ -47,14 +47,15 @@ export async function GET(request: Request) {
             const pluginConfig = await claudeConfigService.getMarketplacePluginConfig(
               plugin.path,
               plugin.name,
-              pluginDef.skills
+              pluginDef.skills,
+              includeContents
             );
             pluginConfigs.push(pluginConfig);
           }
         }
       } else {
         // Standard plugin with .claude structure
-        const pluginConfig = await claudeConfigService.getConfig(plugin.path, 'plugin');
+        const pluginConfig = await claudeConfigService.getConfig(plugin.path, 'plugin', includeContents);
         pluginConfigs.push(pluginConfig);
       }
     }

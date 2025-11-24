@@ -6,7 +6,7 @@
     "smart-docs": "./bin/cli.js"
   },
   "scripts": {
-    "dev": "next dev",
+    "dev": "node bin/cli.js ./test-docs",
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
