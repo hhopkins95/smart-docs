@@ -1,9 +1,9 @@
 {
-  "name": "smart-docs",
+  "name": "@hhopkins/smart-docs",
   "version": "0.1.0",
   "description": "Local documentation viewer for AI-native codebases",
   "bin": {
-    "smart-docs": "./bin/cli.js"
+    "smart-docs": "bin/cli.js"
   },
   "scripts": {
     "dev": "node bin/cli.js ./test-docs",
