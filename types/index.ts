@@ -20,6 +20,30 @@ export interface PluginManifest {
   repository?: string;
 }
 
+export interface MarketplacePlugin {
+  name: string;
+  description?: string;
+  source: string;
+  strict?: boolean;
+  skills?: string[];
+  commands?: string[];
+  agents?: string[];
+  hooks?: string[];
+}
+
+export interface MarketplaceManifest {
+  name: string;
+  owner?: {
+    name: string;
+    email: string;
+  };
+  metadata?: {
+    description?: string;
+    version?: string;
+  };
+  plugins: MarketplacePlugin[];
+}
+
 export interface Plugin {
   id: string;                    // e.g., "example-skills@anthropic-agent-skills"
   name: string;

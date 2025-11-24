@@ -1,12 +1,21 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import DocsTab from './components/DocsTab';
 import ClaudeConfigTab from './components/ClaudeConfigTab';
 import PluginsTab from './components/PluginsTab';
+import type { ServerConfig } from '@/types';
 
 export default function Home() {
   const [activeTab, setActiveTab] = useState<'docs' | 'claude' | 'plugins'>('docs');
+  const [config, setConfig] = useState<ServerConfig | null>(null);
+
+  useEffect(() => {
+    fetch('/api/config')
+      .then(res => res.json())
+      .then(data => setConfig(data))
+      .catch(err => console.error('Failed to fetch config:', err));
+  }, []);
 
   return (
     <div className="flex flex-col h-screen">
@@ -17,6 +26,11 @@ export default function Home() {
           <p className="text-sm text-gray-600 dark:text-gray-400">
             AI-native documentation viewer
           </p>
+          {config && (
+            <p className="text-xs text-gray-500 dark:text-gray-500 mt-1">
+              📂 {config.projectRoot}
+            </p>
+          )}
         </div>
 
         {/* Tabs */}
