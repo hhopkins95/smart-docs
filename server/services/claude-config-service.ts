@@ -4,7 +4,7 @@ import matter from 'gray-matter';
 import type { ClaudeConfig, Skill, Command, Agent, Hook, SkillMetadata, Frontmatter, ClaudeMdFile, ClaudeMdNode, ClaudeMdScope } from '@/types';
 
 export class ClaudeConfigService {
-  async getConfig(basePath: string, source: 'global' | 'project', includeContents: boolean = false): Promise<ClaudeConfig> {
+  async getConfig(basePath: string, source: 'global' | 'project' | 'plugin', includeContents: boolean = false): Promise<ClaudeConfig> {
     const [skills, commands, agents, hooks] = await Promise.all([
       this.getSkills(basePath, source, includeContents),
       this.getCommands(basePath, source),
