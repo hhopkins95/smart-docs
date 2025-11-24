@@ -72,8 +72,8 @@ export class ClaudeConfigService {
   }
 
   private async parseSkillMetadata(skillPath: string): Promise<SkillMetadata | null> {
-    // Try to read skill.md or README.md
-    const possibleFiles = ['skill.md', 'README.md', 'readme.md'];
+    // Try to read skill.md, SKILL.md, or README.md
+    const possibleFiles = ['skill.md', 'SKILL.md', 'README.md', 'readme.md'];
 
     for (const filename of possibleFiles) {
       try {
@@ -212,5 +212,42 @@ export class ClaudeConfigService {
   private extractFirstLine(content: string): string {
     const line = content.trim().split('\n')[0];
     return line.trim();
+  }
+
+  async getMarketplacePluginConfig(marketplacePath: string, pluginName: string, skillPaths: string[]): Promise<ClaudeConfig> {
+    const skills: Skill[] = [];
+
+    for (const skillPath of skillPaths) {
+      const fullSkillPath = path.join(marketplacePath, skillPath);
+
+      try {
+        const stat = await fs.stat(fullSkillPath);
+        if (!stat.isDirectory()) continue;
+
+        // Read skill metadata from SKILL.md or skill.md
+        const metadata = await this.parseSkillMetadata(fullSkillPath);
+
+        // Get all files in the skill directory
+        const files = await this.getFilesInDirectory(fullSkillPath);
+
+        skills.push({
+          name: path.basename(skillPath),
+          path: fullSkillPath,
+          source: 'plugin',
+          metadata,
+          files,
+        });
+      } catch (error) {
+        // Skip skills that can't be read
+        console.warn(`Failed to load skill ${skillPath}:`, error);
+      }
+    }
+
+    return {
+      skills,
+      commands: [], // Marketplace plugins don't have commands
+      agents: [],   // Marketplace plugins don't have agents
+      hooks: [],    // Marketplace plugins don't have hooks
+    };
   }
 }

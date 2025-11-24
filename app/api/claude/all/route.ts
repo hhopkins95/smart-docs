@@ -34,11 +34,30 @@ export async function GET(request: Request) {
     });
 
     // Load configs from all enabled plugins
-    const pluginConfigs: ClaudeConfig[] = await Promise.all(
-      enabledPlugins.map(plugin =>
-        claudeConfigService.getConfig(plugin.path, 'plugin')
-      )
-    );
+    const pluginConfigs: ClaudeConfig[] = [];
+
+    for (const plugin of enabledPlugins) {
+      if (plugin.marketplace) {
+        // This is a marketplace plugin - load it differently
+        const manifest = await pluginDiscovery.getMarketplaceManifest(plugin.path);
+        if (manifest) {
+          // Find this plugin's definition in the manifest
+          const pluginDef = manifest.plugins.find(p => `${p.name}@${manifest.name}` === plugin.id);
+          if (pluginDef && pluginDef.skills) {
+            const pluginConfig = await claudeConfigService.getMarketplacePluginConfig(
+              plugin.path,
+              plugin.name,
+              pluginDef.skills
+            );
+            pluginConfigs.push(pluginConfig);
+          }
+        }
+      } else {
+        // Standard plugin with .claude structure
+        const pluginConfig = await claudeConfigService.getConfig(plugin.path, 'plugin');
+        pluginConfigs.push(pluginConfig);
+      }
+    }
 
     // Aggregate all skills, commands, agents, and hooks
     const allSkills: Skill[] = [

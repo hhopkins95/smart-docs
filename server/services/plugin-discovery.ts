@@ -111,6 +111,16 @@ export class PluginDiscovery {
     return marketplaceUrls[directoryName] || marketplaceUrls[manifestName];
   }
 
+  async getMarketplaceManifest(marketplacePath: string): Promise<MarketplaceManifest | null> {
+    try {
+      const manifestPath = path.join(marketplacePath, '.claude-plugin', 'marketplace.json');
+      const content = await fs.readFile(manifestPath, 'utf-8');
+      return JSON.parse(content);
+    } catch {
+      return null;
+    }
+  }
+
   private async parsePlugin(pluginPath: string, source: 'global' | 'project'): Promise<Plugin | null> {
     try {
       const manifestPath = path.join(pluginPath, '.claude-plugin', 'plugin.json');

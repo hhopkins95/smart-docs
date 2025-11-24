@@ -62,7 +62,11 @@ export default function PluginsTab() {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ pluginPath: plugin.path }),
+        body: JSON.stringify({
+          pluginPath: plugin.path,
+          pluginId: plugin.id,
+          marketplace: plugin.marketplace,
+        }),
       });
 
       const config = await response.json();

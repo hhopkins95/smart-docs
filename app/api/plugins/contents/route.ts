@@ -3,7 +3,7 @@ import { getServices } from '@/server/services';
 
 export async function POST(request: Request) {
   try {
-    const { pluginPath } = await request.json();
+    const { pluginPath, pluginId, marketplace } = await request.json();
 
     if (!pluginPath) {
       return NextResponse.json(
@@ -12,10 +12,32 @@ export async function POST(request: Request) {
       );
     }
 
-    const { claudeConfigService } = getServices();
+    const { claudeConfigService, pluginDiscovery } = getServices();
 
-    // Load the plugin's config
-    const config = await claudeConfigService.getConfig(pluginPath, 'plugin');
+    let config;
+
+    if (marketplace) {
+      // This is a marketplace plugin - load it differently
+      const manifest = await pluginDiscovery.getMarketplaceManifest(pluginPath);
+      if (manifest) {
+        // Find this plugin's definition in the manifest
+        const pluginDef = manifest.plugins.find(p => `${p.name}@${manifest.name}` === pluginId);
+        if (pluginDef && pluginDef.skills) {
+          config = await claudeConfigService.getMarketplacePluginConfig(
+            pluginPath,
+            pluginDef.name,
+            pluginDef.skills
+          );
+        } else {
+          config = { skills: [], commands: [], agents: [], hooks: [] };
+        }
+      } else {
+        config = { skills: [], commands: [], agents: [], hooks: [] };
+      }
+    } else {
+      // Standard plugin with .claude structure
+      config = await claudeConfigService.getConfig(pluginPath, 'plugin');
+    }
 
     return NextResponse.json(config);
   } catch (error) {
