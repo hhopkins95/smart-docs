@@ -5,6 +5,9 @@ import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import type { ClaudeConfig, Skill, Command, Agent, Hook } from '@/types';
 import SourceBadge from './SourceBadge';
+import SkillModal from './SkillModal';
+import CommandModal from './CommandModal';
+import AgentModal from './AgentModal';
 
 type DocumentType = 'skills' | 'commands' | 'agents' | 'hooks';
 
@@ -12,6 +15,11 @@ export default function ClaudeConfigTab() {
   const [config, setConfig] = useState<ClaudeConfig | null>(null);
   const [activeTab, setActiveTab] = useState<DocumentType>('skills');
   const [loading, setLoading] = useState(true);
+
+  // Modal state
+  const [selectedSkill, setSelectedSkill] = useState<Skill | null>(null);
+  const [selectedCommand, setSelectedCommand] = useState<Command | null>(null);
+  const [selectedAgent, setSelectedAgent] = useState<Agent | null>(null);
 
   useEffect(() => {
     fetchConfig();
@@ -64,7 +72,11 @@ export default function ClaudeConfigTab() {
               <h3 className="text-lg font-semibold mb-3 capitalize">{source} Skills ({skills.length})</h3>
               <div className="space-y-4">
                 {skills.map((skill, idx) => (
-                  <div key={idx} className="border border-gray-200 dark:border-gray-700 rounded p-4">
+                  <button
+                    key={idx}
+                    className="w-full border border-gray-200 dark:border-gray-700 rounded p-4 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors text-left"
+                    onClick={() => setSelectedSkill(skill)}
+                  >
                     <div className="flex items-center gap-2 mb-2">
                       <h4 className="font-semibold">{skill.name}</h4>
                       <SourceBadge source={skill.source} />
@@ -77,34 +89,7 @@ export default function ClaudeConfigTab() {
                     <p className="text-xs text-gray-500 mt-2">
                       {skill.files.length} file(s)
                     </p>
-                    {skill.files.length > 0 && (
-                      <details className="mt-2">
-                        <summary className="cursor-pointer text-sm text-blue-600 dark:text-blue-400">
-                          View files
-                        </summary>
-                        <div className="mt-2 space-y-3">
-                          {skill.files.map((filename, fileIdx) => (
-                            <div key={fileIdx} className="border-t border-gray-200 dark:border-gray-600 pt-2">
-                              <p className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                                {filename}
-                              </p>
-                              {skill.fileContents && skill.fileContents[filename] ? (
-                                <SyntaxHighlighter
-                                  language={getLanguageFromFilename(filename)}
-                                  style={vscDarkPlus as any}
-                                  className="text-xs"
-                                >
-                                  {skill.fileContents[filename]}
-                                </SyntaxHighlighter>
-                              ) : (
-                                <p className="text-xs text-gray-500 italic">Content not loaded</p>
-                              )}
-                            </div>
-                          ))}
-                        </div>
-                      </details>
-                    )}
-                  </div>
+                  </button>
                 ))}
               </div>
             </div>
@@ -112,29 +97,6 @@ export default function ClaudeConfigTab() {
         })}
       </div>
     );
-  };
-
-  const getLanguageFromFilename = (filename: string): string => {
-    const ext = filename.split('.').pop()?.toLowerCase();
-    switch (ext) {
-      case 'md':
-        return 'markdown';
-      case 'js':
-        return 'javascript';
-      case 'ts':
-        return 'typescript';
-      case 'json':
-        return 'json';
-      case 'py':
-        return 'python';
-      case 'sh':
-        return 'bash';
-      case 'yml':
-      case 'yaml':
-        return 'yaml';
-      default:
-        return 'text';
-    }
   };
 
   const renderCommands = () => {
@@ -154,7 +116,11 @@ export default function ClaudeConfigTab() {
               <h3 className="text-lg font-semibold mb-3 capitalize">{source} Commands ({commands.length})</h3>
               <div className="space-y-4">
                 {commands.map((command, idx) => (
-                  <div key={idx} className="border border-gray-200 dark:border-gray-700 rounded p-4">
+                  <button
+                    key={idx}
+                    className="w-full border border-gray-200 dark:border-gray-700 rounded p-4 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors text-left"
+                    onClick={() => setSelectedCommand(command)}
+                  >
                     <div className="flex items-center gap-2 mb-2">
                       <h4 className="font-semibold">/{command.name}</h4>
                       <SourceBadge source={command.source} />
@@ -164,19 +130,7 @@ export default function ClaudeConfigTab() {
                         {command.description}
                       </p>
                     )}
-                    <details className="mt-2">
-                      <summary className="cursor-pointer text-sm text-blue-600 dark:text-blue-400">
-                        View content
-                      </summary>
-                      <SyntaxHighlighter
-                        language="markdown"
-                        style={vscDarkPlus as any}
-                        className="mt-2 text-xs"
-                      >
-                        {command.content}
-                      </SyntaxHighlighter>
-                    </details>
-                  </div>
+                  </button>
                 ))}
               </div>
             </div>
@@ -203,7 +157,11 @@ export default function ClaudeConfigTab() {
               <h3 className="text-lg font-semibold mb-3 capitalize">{source} Agents ({agents.length})</h3>
               <div className="space-y-4">
                 {agents.map((agent, idx) => (
-                  <div key={idx} className="border border-gray-200 dark:border-gray-700 rounded p-4">
+                  <button
+                    key={idx}
+                    className="w-full border border-gray-200 dark:border-gray-700 rounded p-4 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors text-left"
+                    onClick={() => setSelectedAgent(agent)}
+                  >
                     <div className="flex items-center gap-2 mb-2">
                       <h4 className="font-semibold">{agent.name}</h4>
                       <SourceBadge source={agent.source} />
@@ -213,19 +171,7 @@ export default function ClaudeConfigTab() {
                         {agent.description}
                       </p>
                     )}
-                    <details className="mt-2">
-                      <summary className="cursor-pointer text-sm text-blue-600 dark:text-blue-400">
-                        View content
-                      </summary>
-                      <SyntaxHighlighter
-                        language="markdown"
-                        style={vscDarkPlus as any}
-                        className="mt-2 text-xs"
-                      >
-                        {agent.content}
-                      </SyntaxHighlighter>
-                    </details>
-                  </div>
+                  </button>
                 ))}
               </div>
             </div>
@@ -333,6 +279,23 @@ export default function ClaudeConfigTab() {
       <div className="flex-1 overflow-y-auto p-6">
         {config && renderContent()}
       </div>
+
+      {/* Modals */}
+      <SkillModal
+        skill={selectedSkill}
+        isOpen={selectedSkill !== null}
+        onClose={() => setSelectedSkill(null)}
+      />
+      <CommandModal
+        command={selectedCommand}
+        isOpen={selectedCommand !== null}
+        onClose={() => setSelectedCommand(null)}
+      />
+      <AgentModal
+        agent={selectedAgent}
+        isOpen={selectedAgent !== null}
+        onClose={() => setSelectedAgent(null)}
+      />
     </div>
   );
 }
