@@ -6,6 +6,7 @@ import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import remarkGfm from 'remark-gfm';
 import type { FileTreeNode, MarkdownContent } from '@/types';
+import Mermaid from './Mermaid';
 
 export default function DocsTab() {
   const [tree, setTree] = useState<FileTreeNode | null>(null);
@@ -102,6 +103,12 @@ export default function DocsTab() {
               components={{
                 code({ node, inline, className, children, ...props }: any) {
                   const match = /language-(\w+)/.exec(className || '');
+                  const code = String(children).replace(/\n$/, '');
+
+                  if (!inline && match?.[1] === 'mermaid') {
+                    return <Mermaid chart={code} />;
+                  }
+
                   return !inline && match ? (
                     <SyntaxHighlighter
                       style={vscDarkPlus as any}
@@ -109,7 +116,7 @@ export default function DocsTab() {
                       PreTag="div"
                       {...props}
                     >
-                      {String(children).replace(/\n$/, '')}
+                      {code}
                     </SyntaxHighlighter>
                   ) : (
                     <code className={className} {...props}>
