@@ -1,6 +1,6 @@
 {
   "name": "@hhopkins/smart-docs",
-  "version": "0.1.6 ",
+  "version": "0.1.7",
   "description": "Local documentation viewer for AI-native codebases",
   "bin": {
     "smart-docs": "bin/cli.mjs"

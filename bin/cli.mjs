@@ -42,7 +42,7 @@ async function main() {
     const isDev = args.includes('--dev');
     const portIndex = args.findIndex(arg => arg === '--port' || arg === '-p');
     const specifiedPort = portIndex >= 0 && args[portIndex + 1] ? parseInt(args[portIndex + 1], 10) : null;
-    const docsPath = args.find(arg => !arg.startsWith('--') && !arg.startsWith('-') && arg !== args[portIndex + 1]) || './docs';
+    const docsPath = args.find(arg => !arg.startsWith('--') && !arg.startsWith('-') && (portIndex < 0 || arg !== args[portIndex + 1])) || './docs';
     // Resolve paths
     const projectRoot = process.cwd();
     const homeDir = os.homedir();
